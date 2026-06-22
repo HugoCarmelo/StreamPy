@@ -207,7 +207,9 @@ function getItemType(item) {
 }
 
 function getItemId(item) {
-  return item.stream_id || item.series_id
+  // Les séries utilisent series_id, live/vod utilisent stream_id
+  if (activeTab.value === 'series') return item.series_id
+  return item.stream_id
 }
 
 function isFav(item) {
@@ -265,6 +267,8 @@ function navigateTab(tab) {
 }
 
 async function selectCategory(catId) {
+  // La catégorie "0" = "Tout" dans Xtream → trop de données, on ignore
+  if (catId === '0' || catId === 0) return
   selectedCategory.value = catId
   await loadContent(catId)
 }
@@ -286,7 +290,7 @@ watch(
 )
 
 function goToProfiles() {
-  router.push({ name: 'profiles' })
+  router.push({ name: 'ProfileSelect' })
 }
 
 onMounted(async () => {

@@ -37,29 +37,27 @@ const routes = [
     component: () => import('@/views/HomeView.vue'),
     meta: { requiresAuth: true },
   },
-  // Redirige /home vers /live (compat)
+  // Fiche détail d'une série
   {
-    path: '/home',
-    redirect: '/live',
-  },
-  {
-    path: '/series/:id',
+    path: '/series/:id(\\d+)',
     name: 'SeriesDetail',
     component: () => import('@/views/SeriesDetailView.vue'),
     props: true,
     meta: { requiresAuth: true },
   },
+  // Player
   {
     path: '/player',
     name: 'Player',
     component: () => import('@/views/PlayerView.vue'),
     meta: { requiresAuth: true },
   },
+  // Compat : /home redirige vers /live
   {
-    path: '/',
-    name: 'profiles',
-    component: () => import('@/views/ProfileSelectView.vue'),
+    path: '/home',
+    redirect: '/live',
   },
+  // Catch-all
   {
     path: '/:pathMatch(.*)*',
     redirect: '/',
