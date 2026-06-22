@@ -66,7 +66,7 @@ function handleKey(key) {
 async function submitPin() {
   try {
     await auth.login(Number(props.profileId), pin.value)
-    router.push({ name: 'Home' })
+    router.push({ name: 'Live' })
   } catch {
     errorMsg.value = 'PIN incorrect'
     pin.value = ''

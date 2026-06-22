@@ -18,15 +18,33 @@ const routes = [
     name: 'ProfileSetup',
     component: () => import('@/views/ProfileSetupView.vue'),
   },
+  // Sections principales — chacune a sa propre URL
   {
-    path: '/home',
-    name: 'Home',
+    path: '/live',
+    name: 'Live',
     component: () => import('@/views/HomeView.vue'),
     meta: { requiresAuth: true },
   },
-   {
-    path: '/series/:id',          // ← NOUVEAU
-    name: 'series-detail',
+  {
+    path: '/vod',
+    name: 'VOD',
+    component: () => import('@/views/HomeView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/series',
+    name: 'Series',
+    component: () => import('@/views/HomeView.vue'),
+    meta: { requiresAuth: true },
+  },
+  // Redirige /home vers /live (compat)
+  {
+    path: '/home',
+    redirect: '/live',
+  },
+  {
+    path: '/series/:id',
+    name: 'SeriesDetail',
     component: () => import('@/views/SeriesDetailView.vue'),
     props: true,
     meta: { requiresAuth: true },
@@ -38,7 +56,6 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    // Alias so HomeView can navigate to "profiles"
     path: '/',
     name: 'profiles',
     component: () => import('@/views/ProfileSelectView.vue'),

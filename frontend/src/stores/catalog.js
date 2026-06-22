@@ -152,6 +152,13 @@ export const useCatalogStore = defineStore('catalog', () => {
     await api.put('/history', payload)
   }
 
+  // Vide les streams de la section courante (changement d'onglet)
+  function clearStreams() {
+    liveStreams.value = []
+    vodStreams.value = []
+    seriesList.value = []
+  }
+
   return {
     liveCategories, liveStreams,
     vodCategories, vodStreams,
@@ -166,5 +173,6 @@ export const useCatalogStore = defineStore('catalog', () => {
     setCurrentStream,
     fetchFavorites, addFavorite, removeFavorite, isFavorite,
     fetchHistory, saveProgress,
+    clearStreams,
   }
 })

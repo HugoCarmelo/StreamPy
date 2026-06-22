@@ -9,7 +9,7 @@
           <button
             v-for="tab in tabs"
             :key="tab.id"
-            @click="switchTab(tab.id)"
+            @click="navigateTab(tab)"
             :class="[
               'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
               activeTab === tab.id
@@ -47,30 +47,24 @@
       <!-- Sidebar categories -->
       <aside class="w-52 bg-gray-900 border-r border-gray-800 overflow-y-auto flex-shrink-0">
         <div class="p-3">
-          <button
-            @click="selectCategory(null)"
-            :class="[
-              'w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors',
-              selectedCategory === null
-                ? 'bg-indigo-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            ]"
-          >
-            Tout
-          </button>
-          <button
-            v-for="cat in currentCategories"
-            :key="cat.category_id"
-            @click="selectCategory(cat.category_id)"
-            :class="[
-              'w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors truncate',
-              selectedCategory === cat.category_id
-                ? 'bg-indigo-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            ]"
-          >
-            {{ cat.category_name }}
-          </button>
+          <div v-if="categoriesLoading" class="space-y-2 py-2">
+            <div v-for="n in 8" :key="n" class="animate-pulse bg-gray-800 rounded-lg h-8" />
+          </div>
+          <template v-else>
+            <button
+              v-for="cat in currentCategories"
+              :key="cat.category_id"
+              @click="selectCategory(cat.category_id)"
+              :class="[
+                'w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors truncate',
+                selectedCategory === cat.category_id
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              ]"
+            >
+              {{ cat.category_name }}
+            </button>
+          </template>
         </div>
       </aside>
 
@@ -81,8 +75,16 @@
           {{ catalog.error }}
         </div>
 
+        <!-- Empty state : aucune catégorie sélectionnée -->
+        <div v-if="!selectedCategory && !catalog.loading" class="flex flex-col items-center justify-center py-24 text-gray-500">
+          <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+          <p class="text-sm">Sélectionnez une catégorie pour afficher le contenu</p>
+        </div>
+
         <!-- Loading skeleton -->
-        <div v-if="catalog.loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div v-else-if="catalog.loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           <div v-for="n in 18" :key="n" class="animate-pulse">
             <div class="bg-gray-800 rounded-lg aspect-video mb-2"></div>
             <div class="bg-gray-800 rounded h-3 w-3/4"></div>
@@ -133,8 +135,8 @@
           </div>
         </div>
 
-        <!-- Empty state -->
-        <div v-if="!catalog.loading && filteredItems.length === 0" class="flex flex-col items-center justify-center py-24 text-gray-600">
+        <!-- Empty state : catégorie vide -->
+        <div v-if="selectedCategory && !catalog.loading && filteredItems.length === 0" class="flex flex-col items-center justify-center py-24 text-gray-600">
           <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
           </svg>
@@ -147,23 +149,31 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalog'
 import { useProfilesStore } from '@/stores/profiles'
 
 const router = useRouter()
+const route = useRoute()
 const catalog = useCatalogStore()
 const profilesStore = useProfilesStore()
 
 const tabs = [
-  { id: 'live', label: 'Live TV' },
-  { id: 'vod', label: 'Films' },
-  { id: 'series', label: 'Séries' },
+  { id: 'live',   label: 'Live TV', routeName: 'Live' },
+  { id: 'vod',    label: 'Films',   routeName: 'VOD' },
+  { id: 'series', label: 'Séries',  routeName: 'Series' },
 ]
 
-const activeTab = ref('live')
+// Détermine l'onglet actif depuis l'URL courante
+const activeTab = computed(() => {
+  if (route.name === 'VOD') return 'vod'
+  if (route.name === 'Series') return 'series'
+  return 'live'
+})
+
 const selectedCategory = ref(null)
 const searchQuery = ref('')
+const categoriesLoading = ref(false)
 
 const profileInitial = computed(() => {
   const name = profilesStore.activeProfile?.name || '?'
@@ -230,22 +240,28 @@ async function toggleFavorite(item) {
 function playItem(item) {
   const type = getItemType(item)
   const id = getItemId(item)
-  
-  // Les séries vont vers la fiche détail, pas le player
+
+  // Les séries vont vers la fiche détail
   if (type === 'series') {
-    router.push({ name: 'series-detail', params: { id } })
+    router.push({ name: 'SeriesDetail', params: { id } })
     return
   }
-  
-  router.push({ name: 'player', params: { type, id } })
+
+  // Live / VOD → player
+  catalog.setCurrentStream({
+    type,
+    id,
+    title: item.name,
+    poster: item.stream_icon || item.cover || null,
+  })
+  router.push({ name: 'Player' })
 }
 
-
-async function switchTab(tabId) {
-  activeTab.value = tabId
+// Navigation entre tabs : change d'URL + reset catégorie/streams
+function navigateTab(tab) {
   selectedCategory.value = null
-  searchQuery.value = ''
-  await loadContent()
+  catalog.clearStreams()
+  router.push({ name: tab.routeName })
 }
 
 async function selectCategory(catId) {
@@ -253,26 +269,40 @@ async function selectCategory(catId) {
   await loadContent(catId)
 }
 
-async function loadContent(catId = null) {
+async function loadContent(catId) {
   if (activeTab.value === 'live') await catalog.fetchLiveStreams(catId)
   else if (activeTab.value === 'vod') await catalog.fetchVodStreams(catId)
   else await catalog.fetchSeries(catId)
 }
+
+// Quand on navigue entre /live, /vod, /series (bouton retour ou lien), reset la sélection
+watch(
+  () => route.name,
+  (newName, oldName) => {
+    if (newName !== oldName && ['Live', 'VOD', 'Series'].includes(newName)) {
+      selectedCategory.value = null
+    }
+  }
+)
 
 function goToProfiles() {
   router.push({ name: 'profiles' })
 }
 
 onMounted(async () => {
-  // Load all categories (fast, cached)
-  await Promise.all([
-    catalog.fetchLiveCategories(),
-    catalog.fetchVodCategories(),
-    catalog.fetchSeriesCategories(),
-    catalog.fetchFavorites(),
-    catalog.fetchHistory(),
-  ])
-  // Load initial streams
-  await catalog.fetchLiveStreams()
+  // Charge uniquement les catégories (rapide) et les données de profil
+  categoriesLoading.value = true
+  try {
+    await Promise.all([
+      catalog.fetchLiveCategories(),
+      catalog.fetchVodCategories(),
+      catalog.fetchSeriesCategories(),
+      catalog.fetchFavorites(),
+      catalog.fetchHistory(),
+    ])
+  } finally {
+    categoriesLoading.value = false
+  }
+  // Ne charge AUCUN stream au démarrage — l'utilisateur choisit une catégorie
 })
 </script>

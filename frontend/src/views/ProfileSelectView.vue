@@ -58,7 +58,7 @@ async function selectProfile(profile) {
     router.push({ name: 'PinEntry', params: { profileId: profile.id } })
   } else {
     await auth.login(profile.id)
-    router.push({ name: 'Home' })
+    router.push({ name: 'Live' })
   }
 }
 </script>
