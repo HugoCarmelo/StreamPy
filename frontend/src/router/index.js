@@ -25,6 +25,19 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/player/:type/:id',
+    name: 'player',
+    component: () => import('@/views/PlayerView.vue'),
+    props: true,
+    meta: { requiresAuth: true },
+  },
+  {
+    // Alias so HomeView can navigate to "profiles"
+    path: '/',
+    name: 'profiles',
+    component: () => import('@/views/ProfileSelectView.vue'),
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },

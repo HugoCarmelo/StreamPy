@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import get_settings
 from database import init_db
-from routers import profiles, auth
+from routers import profiles, auth, catalog, favorites, history
 
 settings = get_settings()
 
@@ -37,6 +37,9 @@ app.add_middleware(
 # Routers
 app.include_router(profiles.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(catalog.router, prefix="/api/v1")
+app.include_router(favorites.router, prefix="/api/v1")
+app.include_router(history.router, prefix="/api/v1")
 
 
 @app.get("/api/health")

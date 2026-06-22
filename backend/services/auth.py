@@ -103,3 +103,25 @@ async def revoke_refresh_token(db: AsyncSession, token: str) -> None:
     await db.execute(
         delete(RefreshToken).where(RefreshToken.token_hash == token_hash)
     )
+
+
+# ---------------------------------------------------------------------------
+# FastAPI dependency — extract profile_id from Bearer token
+# ---------------------------------------------------------------------------
+
+from fastapi import Depends, HTTPException, status  # noqa: E402
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials  # noqa: E402
+
+_bearer = HTTPBearer(auto_error=False)
+
+
+def get_current_profile_id(
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer),
+) -> int:
+    """FastAPI dependency: decode JWT and return profile_id or raise 401."""
+    if credentials is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    profile_id = decode_access_token(credentials.credentials)
+    if profile_id is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+    return profile_id
