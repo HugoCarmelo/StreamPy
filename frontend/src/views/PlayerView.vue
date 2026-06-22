@@ -72,10 +72,14 @@ const duration = ref(0)
 let saveTimer = null
 
 const streamType = computed(() => route.params.type)
+// streamId est toujours un Number (utilisé pour les appels API)
 const streamId = computed(() => Number(route.params.id))
 const containerExt = computed(() => route.query.ext || null)
+// Titre affiché dans la barre — passé en query param depuis les vues parentes
+const streamTitle = computed(() => route.query.title || null)
 
 const title = computed(() => {
+  if (streamTitle.value) return streamTitle.value
   const id = streamId.value
   const type = streamType.value
   if (type === 'live') {
@@ -86,8 +90,8 @@ const title = computed(() => {
     const item = catalog.vodStreams.find((s) => s.stream_id === id)
     return item?.name || 'Film'
   }
-  const item = catalog.seriesList.find((s) => s.series_id === id)
-  return item?.name || 'Série'
+  // Pour series, le titre de l'épisode est passé en query
+  return 'Épisode'
 })
 
 const typeLabel = computed(() => {

@@ -156,14 +156,15 @@ async function loadSeriesInfo() {
 }
 
 async function playEpisode(episode) {
-  // episode.id = l'id de l'épisode (stream_id pour la requête series)
-  const episodeId = episode.id
+  // episode.id = l'id de l'épisode (string dans l'API Xtream, ex: "865893")
+  // On le convertit en Number pour cohérence avec saveProgress dans PlayerView
+  const episodeId = Number(episode.id)
   const ext = episode.container_extension || episode.info?.container_extension || 'mp4'
-  // Naviguer vers le player avec type=series, id=episodeId et ext en query
+  const title = episode.title || `Épisode ${episode.episode_num || ''}`
   router.push({
     name: 'Player',
     params: { type: 'series', id: String(episodeId) },
-    query: { ext },
+    query: { ext, title },
   })
 }
 
@@ -182,7 +183,10 @@ async function toggleFavorite() {
 }
 
 function getProgress(episodeId) {
-  return catalog.history.find(h => h.item_type === 'series' && h.item_id === episodeId)
+  // episode.id est une string dans l'API Xtream ("865893")
+  // item_id sauvegardé dans PlayerView est un Number → on normalise
+  const id = Number(episodeId)
+  return catalog.history.find(h => h.item_type === 'series' && Number(h.item_id) === id)
 }
 
 function getProgressPercent(episodeId) {

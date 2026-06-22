@@ -220,8 +220,9 @@ function isFav(item) {
 }
 
 function getProgress(item) {
+  const id = Number(getItemId(item))
   const h = catalog.history.find(
-    (e) => e.item_type === getItemType(item) && e.item_id === getItemId(item)
+    (e) => e.item_type === getItemType(item) && Number(e.item_id) === id
   )
   if (!h || !h.duration_sec || h.duration_sec === 0) return null
   return Math.min(Math.round((h.progress_sec / h.duration_sec) * 100), 100)
@@ -253,7 +254,13 @@ function playItem(item) {
   }
 
   // Live / VOD → player directement avec type+id dans l'URL
-  router.push({ name: 'Player', params: { type, id: String(id) } })
+  // Passer ext (container_extension) et title (name) en query params
+  const ext = item.container_extension || null
+  const title = item.name || null
+  const query = {}
+  if (ext) query.ext = ext
+  if (title) query.title = title
+  router.push({ name: 'Player', params: { type, id: String(id) }, query })
 }
 
 // Navigation entre tabs : change d'URL + reset catégorie/streams
