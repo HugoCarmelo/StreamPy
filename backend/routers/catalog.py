@@ -127,11 +127,12 @@ async def series_info(
 async def stream_url(
     stream_type: str = Query(..., pattern="^(live|vod|series)$"),
     stream_id: int = Query(...),
+    container_extension: Optional[str] = Query(None),
     profile_id: int = Depends(get_current_profile_id),
     db: AsyncSession = Depends(get_db),
 ):
     try:
-        url = await get_stream_url(profile_id, stream_type, stream_id, db)
+        url = await get_stream_url(profile_id, stream_type, stream_id, db, container_extension)
         return {"url": url}
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))

@@ -21,6 +21,9 @@ export const useCatalogStore = defineStore('catalog', () => {
   // History
   const history = ref([])
 
+  // Current stream (player)
+  const currentStream = ref(null)
+
   // Loading / error
   const loading = ref(false)
   const error = ref(null)
@@ -72,40 +75,45 @@ export const useCatalogStore = defineStore('catalog', () => {
   // -------------------------------------------------------------------------
   // Series
   // -------------------------------------------------------------------------
-async function fetchSeriesCategories() {
-  const { data } = await api.get('/catalog/series/categories')
-  seriesCategories.value = data
-}
-
-async function fetchSeries(categoryId = null) {
-  loading.value = true
-  error.value = null
-  try {
-    const params = categoryId ? { category_id: categoryId } : {}
-    const { data } = await api.get('/catalog/series', { params })
-    seriesList.value = data
-  } catch (e) {
-    error.value = e?.response?.data?.detail || 'Erreur chargement Séries'
-  } finally {
-    loading.value = false
+  async function fetchSeriesCategories() {
+    const { data } = await api.get('/catalog/series/categories')
+    seriesCategories.value = data
   }
-}
 
-async function fetchSeriesInfo(seriesId) {
-  const { data } = await api.get(`/catalog/series/${seriesId}/info`)
-  return data
-}
+  async function fetchSeries(categoryId = null) {
+    loading.value = true
+    error.value = null
+    try {
+      const params = categoryId ? { category_id: categoryId } : {}
+      const { data } = await api.get('/catalog/series', { params })
+      seriesList.value = data
+    } catch (e) {
+      error.value = e?.response?.data?.detail || 'Erreur chargement Séries'
+    } finally {
+      loading.value = false
+    }
+  }
 
-
+  async function fetchSeriesInfo(seriesId) {
+    const { data } = await api.get(`/catalog/series/${seriesId}/info`)
+    return data
+  }
 
   // -------------------------------------------------------------------------
   // Stream URL
   // -------------------------------------------------------------------------
-  async function getStreamUrl(streamType, streamId) {
-    const { data } = await api.get('/catalog/stream-url', {
-      params: { stream_type: streamType, stream_id: streamId },
-    })
+  async function getStreamUrl(streamType, streamId, containerExtension = null) {
+    const params = { stream_type: streamType, stream_id: streamId }
+    if (containerExtension) params.container_extension = containerExtension
+    const { data } = await api.get('/catalog/stream-url', { params })
     return data.url
+  }
+
+  // -------------------------------------------------------------------------
+  // Current Stream (Player)
+  // -------------------------------------------------------------------------
+  function setCurrentStream(streamData) {
+    currentStream.value = streamData
   }
 
   // -------------------------------------------------------------------------
@@ -150,19 +158,13 @@ async function fetchSeriesInfo(seriesId) {
     seriesCategories, seriesList,
     favorites, history,
     loading, error,
+    currentStream,
     fetchLiveCategories, fetchLiveStreams,
     fetchVodCategories, fetchVodStreams,
-    fetchSeriesCategories, fetchSeries,
+    fetchSeriesCategories, fetchSeries, fetchSeriesInfo,
     getStreamUrl,
+    setCurrentStream,
     fetchFavorites, addFavorite, removeFavorite, isFavorite,
     fetchHistory, saveProgress,
-    fetchSeriesInfo,
-    currentStream, setCurrentStream,
   }
 })
-// Current stream (player)
-const currentStream = ref(null)
-
-function setCurrentStream(streamData) {
-  currentStream.value = streamData
-}

@@ -109,7 +109,6 @@ import { useCatalogStore } from '@/stores/catalog'
 const route = useRoute()
 const router = useRouter()
 const catalog = useCatalogStore()
-const api = useApi()
 
 const seriesId = computed(() => Number(route.params.id))
 const seriesInfo = ref(null)
@@ -141,11 +140,6 @@ const isFavorite = computed(() => catalog.isFavorite('series', seriesId.value))
 
 // ── Methods ─────────────────────────────────────────────────────────────────
 
-import { useCatalogStore } from '@/stores/catalog'
-
-const catalog = useCatalogStore()
-
-// Remplacer useApi par le store directement
 async function loadSeriesInfo() {
   loading.value = true
   error.value = null
@@ -163,7 +157,8 @@ async function loadSeriesInfo() {
 
 async function playEpisode(episode) {
   try {
-    const url = await catalog.getStreamUrl('series', episode.id)
+    const ext = episode.container_extension || episode.info?.container_extension || null
+    const url = await catalog.getStreamUrl('series', episode.id, ext)
     catalog.setCurrentStream({
       url,
       type: 'series',
@@ -177,7 +172,6 @@ async function playEpisode(episode) {
     console.error('Erreur lecture épisode', e)
   }
 }
-
 
 async function toggleFavorite() {
   const info = seriesInfo.value?.info

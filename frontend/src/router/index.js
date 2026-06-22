@@ -32,10 +32,9 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/player/:type/:id',
-    name: 'player',
+    path: '/player',
+    name: 'Player',
     component: () => import('@/views/PlayerView.vue'),
-    props: true,
     meta: { requiresAuth: true },
   },
   {

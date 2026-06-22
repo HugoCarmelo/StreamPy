@@ -193,7 +193,13 @@ async def get_vod_info(profile_id: int, vod_id: int, db: AsyncSession) -> dict:
     return await _xtream_get(url)
 
 
-async def get_stream_url(profile_id: int, stream_type: str, stream_id: int, db: AsyncSession) -> str:
+async def get_stream_url(
+    profile_id: int,
+    stream_type: str,
+    stream_id: int,
+    db: AsyncSession,
+    container_extension: str | None = None,
+) -> str:
     """Build the direct stream URL for live/vod/series."""
     creds = await _get_credentials(profile_id, db)
     base = creds["server_url"]
@@ -205,17 +211,19 @@ async def get_stream_url(profile_id: int, stream_type: str, stream_id: int, db: 
 
     elif stream_type == "vod":
         # Récupérer l'extension réelle depuis l'info VOD
-        try:
-            info = await get_vod_info(profile_id, stream_id, db)
-            ext = info.get("movie_data", {}).get("container_extension", "mp4")
-        except Exception:
-            ext = "mp4"
+        ext = container_extension
+        if not ext:
+            try:
+                info = await get_vod_info(profile_id, stream_id, db)
+                ext = info.get("movie_data", {}).get("container_extension", "mp4")
+            except Exception:
+                ext = "mp4"
         return f"{base}/movie/{u}/{p}/{stream_id}.{ext}"
 
     elif stream_type == "series":
-        # Pour les séries, stream_id est l'episode_id (pas series_id)
-        # L'extension vient de l'épisode
-        return f"{base}/series/{u}/{p}/{stream_id}.mp4"
+        # stream_id est l'episode_id ; container_extension vient de l'épisode
+        ext = container_extension or "mp4"
+        return f"{base}/series/{u}/{p}/{stream_id}.{ext}"
 
     else:
         raise ValueError(f"Unknown stream type: {stream_type}")
