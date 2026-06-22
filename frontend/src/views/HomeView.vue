@@ -230,8 +230,16 @@ async function toggleFavorite(item) {
 function playItem(item) {
   const type = getItemType(item)
   const id = getItemId(item)
+  
+  // Les séries vont vers la fiche détail, pas le player
+  if (type === 'series') {
+    router.push({ name: 'series-detail', params: { id } })
+    return
+  }
+  
   router.push({ name: 'player', params: { type, id } })
 }
+
 
 async function switchTab(tabId) {
   activeTab.value = tabId

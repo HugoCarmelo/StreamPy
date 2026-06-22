@@ -202,9 +202,20 @@ async def get_stream_url(profile_id: int, stream_type: str, stream_id: int, db: 
 
     if stream_type == "live":
         return f"{base}/live/{u}/{p}/{stream_id}.m3u8"
+
     elif stream_type == "vod":
-        return f"{base}/movie/{u}/{p}/{stream_id}.mp4"
+        # Récupérer l'extension réelle depuis l'info VOD
+        try:
+            info = await get_vod_info(profile_id, stream_id, db)
+            ext = info.get("movie_data", {}).get("container_extension", "mp4")
+        except Exception:
+            ext = "mp4"
+        return f"{base}/movie/{u}/{p}/{stream_id}.{ext}"
+
     elif stream_type == "series":
+        # Pour les séries, stream_id est l'episode_id (pas series_id)
+        # L'extension vient de l'épisode
         return f"{base}/series/{u}/{p}/{stream_id}.mp4"
+
     else:
         raise ValueError(f"Unknown stream type: {stream_type}")

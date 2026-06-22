@@ -24,6 +24,13 @@ const routes = [
     component: () => import('@/views/HomeView.vue'),
     meta: { requiresAuth: true },
   },
+   {
+    path: '/series/:id',          // ← NOUVEAU
+    name: 'series-detail',
+    component: () => import('@/views/SeriesDetailView.vue'),
+    props: true,
+    meta: { requiresAuth: true },
+  },
   {
     path: '/player/:type/:id',
     name: 'player',

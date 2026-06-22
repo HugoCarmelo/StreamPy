@@ -72,24 +72,31 @@ export const useCatalogStore = defineStore('catalog', () => {
   // -------------------------------------------------------------------------
   // Series
   // -------------------------------------------------------------------------
-  async function fetchSeriesCategories() {
-    const { data } = await api.get('/catalog/series/categories')
-    seriesCategories.value = data
-  }
+async function fetchSeriesCategories() {
+  const { data } = await api.get('/catalog/series/categories')
+  seriesCategories.value = data
+}
 
-  async function fetchSeries(categoryId = null) {
-    loading.value = true
-    error.value = null
-    try {
-      const params = categoryId ? { category_id: categoryId } : {}
-      const { data } = await api.get('/catalog/series', { params })
-      seriesList.value = data
-    } catch (e) {
-      error.value = e?.response?.data?.detail || 'Erreur chargement Séries'
-    } finally {
-      loading.value = false
-    }
+async function fetchSeries(categoryId = null) {
+  loading.value = true
+  error.value = null
+  try {
+    const params = categoryId ? { category_id: categoryId } : {}
+    const { data } = await api.get('/catalog/series', { params })
+    seriesList.value = data
+  } catch (e) {
+    error.value = e?.response?.data?.detail || 'Erreur chargement Séries'
+  } finally {
+    loading.value = false
   }
+}
+
+async function fetchSeriesInfo(seriesId) {
+  const { data } = await api.get(`/catalog/series/${seriesId}/info`)
+  return data
+}
+
+
 
   // -------------------------------------------------------------------------
   // Stream URL
@@ -149,5 +156,13 @@ export const useCatalogStore = defineStore('catalog', () => {
     getStreamUrl,
     fetchFavorites, addFavorite, removeFavorite, isFavorite,
     fetchHistory, saveProgress,
+    fetchSeriesInfo,
+    currentStream, setCurrentStream,
   }
 })
+// Current stream (player)
+const currentStream = ref(null)
+
+function setCurrentStream(streamData) {
+  currentStream.value = streamData
+}
