@@ -156,21 +156,15 @@ async function loadSeriesInfo() {
 }
 
 async function playEpisode(episode) {
-  try {
-    const ext = episode.container_extension || episode.info?.container_extension || null
-    const url = await catalog.getStreamUrl('series', episode.id, ext)
-    catalog.setCurrentStream({
-      url,
-      type: 'series',
-      id: episode.id,
-      seriesId: seriesId.value,
-      title: `${seriesInfo.value?.info?.name} — S${selectedSeason.value}E${episode.episode_num}`,
-      poster: episode.info?.movie_image || seriesInfo.value?.info?.cover,
-    })
-    router.push({ name: 'Player' })
-  } catch (e) {
-    console.error('Erreur lecture épisode', e)
-  }
+  // episode.id = l'id de l'épisode (stream_id pour la requête series)
+  const episodeId = episode.id
+  const ext = episode.container_extension || episode.info?.container_extension || 'mp4'
+  // Naviguer vers le player avec type=series, id=episodeId et ext en query
+  router.push({
+    name: 'Player',
+    params: { type: 'series', id: String(episodeId) },
+    query: { ext },
+  })
 }
 
 async function toggleFavorite() {

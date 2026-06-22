@@ -76,7 +76,7 @@
         </div>
 
         <!-- Empty state : aucune catégorie sélectionnée -->
-        <div v-if="!selectedCategory && !catalog.loading" class="flex flex-col items-center justify-center py-24 text-gray-500">
+        <div v-if="!selectedCategory && !catalog.loading && filteredItems.length === 0" class="flex flex-col items-center justify-center py-24 text-gray-500">
           <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
@@ -181,9 +181,12 @@ const profileInitial = computed(() => {
 })
 
 const currentCategories = computed(() => {
-  if (activeTab.value === 'live') return catalog.liveCategories
-  if (activeTab.value === 'vod') return catalog.vodCategories
-  return catalog.seriesCategories
+  let cats
+  if (activeTab.value === 'live') cats = catalog.liveCategories
+  else if (activeTab.value === 'vod') cats = catalog.vodCategories
+  else cats = catalog.seriesCategories
+  // Filtrer la catégorie "Tout" (id=0 ou "0") — trop volumineuse
+  return cats.filter((c) => c.category_id !== '0' && c.category_id !== 0)
 })
 
 const currentItems = computed(() => {
@@ -243,20 +246,14 @@ function playItem(item) {
   const type = getItemType(item)
   const id = getItemId(item)
 
-  // Les séries vont vers la fiche détail
+  // Les séries vont vers la fiche détail (choix saison/épisode)
   if (type === 'series') {
-    router.push({ name: 'SeriesDetail', params: { id } })
+    router.push({ name: 'SeriesDetail', params: { id: String(id) } })
     return
   }
 
-  // Live / VOD → player
-  catalog.setCurrentStream({
-    type,
-    id,
-    title: item.name,
-    poster: item.stream_icon || item.cover || null,
-  })
-  router.push({ name: 'Player' })
+  // Live / VOD → player directement avec type+id dans l'URL
+  router.push({ name: 'Player', params: { type, id: String(id) } })
 }
 
 // Navigation entre tabs : change d'URL + reset catégorie/streams

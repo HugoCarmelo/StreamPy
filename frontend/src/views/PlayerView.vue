@@ -73,6 +73,7 @@ let saveTimer = null
 
 const streamType = computed(() => route.params.type)
 const streamId = computed(() => Number(route.params.id))
+const containerExt = computed(() => route.query.ext || null)
 
 const title = computed(() => {
   const id = streamId.value
@@ -99,7 +100,7 @@ async function loadStream() {
   loading.value = true
   error.value = null
   try {
-    const url = await catalog.getStreamUrl(streamType.value, streamId.value)
+    const url = await catalog.getStreamUrl(streamType.value, streamId.value, containerExt.value)
     streamUrl.value = url
     await setupPlayer(url)
   } catch (e) {

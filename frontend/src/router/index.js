@@ -45,11 +45,12 @@ const routes = [
     props: true,
     meta: { requiresAuth: true },
   },
-  // Player
+  // Player : /player/:type/:id  (ex: /player/vod/12345 ou /player/live/67890)
   {
-    path: '/player',
+    path: '/player/:type/:id',
     name: 'Player',
     component: () => import('@/views/PlayerView.vue'),
+    props: true,
     meta: { requiresAuth: true },
   },
   // Compat : /home redirige vers /live
